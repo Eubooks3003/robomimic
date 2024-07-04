@@ -41,6 +41,9 @@ from robomimic.config import config_factory
 from robomimic.algo import algo_factory, RolloutPolicy
 from robomimic.utils.log_utils import PrintLogger, DataLogger, flush_warnings
 
+import gc
+from memory_profiler import profile
+
 
 def train(config, device):
     """
@@ -325,6 +328,8 @@ def train(config, device):
         data_logger.record("System/RAM Usage (MB)", mem_usage, epoch)
         print("\nEpoch {} Memory Usage: {} MB\n".format(epoch, mem_usage))
 
+        gc.collect()
+
     # terminate logging
     data_logger.close()
 
@@ -382,6 +387,7 @@ def main(args):
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     # External config file that overwrites default config

@@ -116,7 +116,7 @@ class BaseConfig(Config):
 
         ## evaluation rollout config ##
         self.experiment.rollout.enabled = True                      # enable evaluation rollouts
-        self.experiment.rollout.n = 50                              # number of rollouts per evaluation
+        self.experiment.rollout.n = 15                              # number of rollouts per evaluation
         self.experiment.rollout.horizon = 400                       # maximum number of env steps per rollout
         self.experiment.rollout.rate = 50                           # do rollouts every @rate epochs
         self.experiment.rollout.warmstart = 0                       # number of epochs to wait before starting rollouts
