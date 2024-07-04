@@ -26,6 +26,13 @@ from robomimic.envs.env_base import EnvBase
 from robomimic.envs.wrappers import EnvWrapper
 from robomimic.algo import RolloutPolicy
 
+import gc
+from memory_profiler import profile
+import sys
+from memory_profiler import LogFile
+
+# sys.stdout = LogFile('memory_profile_log', reportIncrementFlag=False)
+
 
 def get_exp_dir(config, auto_remove_exp_dir=False):
     """
@@ -265,7 +272,6 @@ def run_rollout(
 
     return results
 
-
 def rollout_with_stats(
         policy,
         envs,
@@ -372,6 +378,9 @@ def rollout_with_stats(
             if verbose:
                 print("Episode {}, horizon={}, num_success={}".format(ep_i + 1, horizon, num_success))
                 print(json.dumps(rollout_info, sort_keys=True, indent=4))
+
+            gc.collect()
+
 
         if video_dir is not None:
             # close this env's video writer (next env has it's own)
