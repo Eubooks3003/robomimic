@@ -31,6 +31,7 @@ from memory_profiler import profile
 import sys
 from memory_profiler import LogFile
 
+import jax
 # sys.stdout = LogFile('memory_profile_log', reportIncrementFlag=False)
 
 
@@ -109,6 +110,7 @@ def load_data_for_training(config, obs_keys):
 
     # load the dataset into memory
     if config.experiment.validate:
+        print("Validate")
         assert not config.train.hdf5_normalize_obs, "no support for observation normalization with validation data yet"
         assert (train_filter_by_attribute is not None) and (valid_filter_by_attribute is not None), \
             "did not specify filter keys corresponding to train and valid split in dataset" \
@@ -126,6 +128,7 @@ def load_data_for_training(config, obs_keys):
         train_dataset = dataset_factory(config, obs_keys, filter_by_attribute=train_filter_by_attribute)
         valid_dataset = dataset_factory(config, obs_keys, filter_by_attribute=valid_filter_by_attribute)
     else:
+        print("Not validate")
         train_dataset = dataset_factory(config, obs_keys, filter_by_attribute=train_filter_by_attribute)
         valid_dataset = None
 
@@ -170,6 +173,8 @@ def dataset_factory(config, obs_keys, filter_by_attribute=None, dataset_path=Non
         hdf5_normalize_obs=config.train.hdf5_normalize_obs,
         filter_by_attribute=filter_by_attribute
     )
+
+    print("DS KWARGS: ", ds_kwargs)
     dataset = SequenceDataset(**ds_kwargs)
 
     return dataset
@@ -210,9 +215,10 @@ def run_rollout(
         results (dict): dictionary containing return, success rate, etc.
     """
     assert isinstance(policy, RolloutPolicy)
-    assert isinstance(env, EnvBase) or isinstance(env, EnvWrapper)
+    # assert isinstance(env, EnvBase) or isinstance(env, EnvWrapper)
 
     policy.start_episode()
+    rng = jax.random.PRNGKey(seed=0)
 
     ob_dict = env.reset()
     goal_dict = None
@@ -230,6 +236,7 @@ def run_rollout(
         for step_i in range(horizon):
 
             # get action from policy
+            print("Obs Dict: ", ob_dict)
             ac = policy(ob=ob_dict, goal=goal_dict)
 
             # play action
@@ -260,6 +267,8 @@ def run_rollout(
 
     except env.rollout_exceptions as e:
         print("WARNING: got rollout exception {}".format(e))
+    # except Exception as e:
+    #     print(f"WARNING: got rollout exception {e}")
 
     results["Return"] = total_reward
     results["Horizon"] = step_i + 1
@@ -351,9 +360,9 @@ def rollout_with_stats(
             print("video writes to " + video_paths[env_name])
             env_video_writer = video_writers[env_name]
 
-        print("rollout: env={}, horizon={}, use_goals={}, num_episodes={}".format(
-            env.name, horizon, use_goals, num_episodes,
-        ))
+        # print("rollout: env={}, horizon={}, use_goals={}, num_episodes={}".format(
+        #     env.name, horizon, use_goals, num_episodes,
+        # ))
         rollout_logs = []
         iterator = range(num_episodes)
         if not verbose:

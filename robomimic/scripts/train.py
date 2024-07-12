@@ -31,6 +31,7 @@ from collections import OrderedDict
 import torch
 from torch.utils.data import DataLoader
 
+from brax import envs as brax_envs
 import robomimic
 import robomimic.utils.train_utils as TrainUtils
 import robomimic.utils.torch_utils as TorchUtils
@@ -83,6 +84,7 @@ def train(config, device):
         all_obs_keys=config.all_obs_keys,
         verbose=True
     )
+    print("Shape Meta: ", shape_meta)
 
     if config.experiment.env is not None:
         env_meta["env_name"] = config.experiment.env
@@ -92,6 +94,7 @@ def train(config, device):
     envs = OrderedDict()
     if config.experiment.rollout.enabled:
         # create environments for validation runs
+        print("Rollout ENABLED")
         env_names = [env_meta["env_name"]]
 
         if config.experiment.additional_envs is not None:
@@ -111,8 +114,13 @@ def train(config, device):
             envs[env.name] = env
             print(envs[env.name])
 
-    print("")
 
+    # env_name = 'pusher' 
+    # backend = 'spring'  
+    # env = brax_envs.get_environment(env_name=env_name, backend=backend)
+
+    # envs = OrderedDict()
+    # envs[env_name] = env
     # setup for a new training run
     data_logger = DataLogger(
         log_dir,

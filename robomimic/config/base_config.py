@@ -219,12 +219,21 @@ class BaseConfig(Config):
         """
 
         # observation modalities
-        self.observation.modalities.obs.low_dim = [             # specify low-dim observations for agent
-            "robot0_eef_pos", 
-            "robot0_eef_quat", 
-            "robot0_gripper_qpos", 
-            "object",
+        # self.observation.modalities.obs.low_dim = [             # specify low-dim observations for agent
+        #     "robot0_eef_pos", 
+        #     "robot0_eef_quat", 
+        #     "robot0_gripper_qpos", 
+        #     "object",
+        # ]
+
+        self.observation.modalities.obs.low_dim = [
+                'joint_positions',
+                'joint_velocities',
+                'tip_position',
+                'object_position',
+                'goal_position'
         ]
+
         self.observation.modalities.obs.rgb = []              # specify rgb image observations for agent
         self.observation.modalities.obs.depth = []
         self.observation.modalities.obs.scan = []

@@ -23,6 +23,7 @@ try:
     import mujoco_py
     MUJOCO_EXCEPTIONS = [mujoco_py.builder.MujocoException]
 except ImportError:
+    print("Unsucessful Sujoco Py Install")
     MUJOCO_EXCEPTIONS = []
 
 

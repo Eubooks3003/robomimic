@@ -131,6 +131,7 @@ def get_shape_metadata_from_dataset(dataset_path, all_obs_keys=None, verbose=Fal
             :`'use_depths'`: bool, whether or not depth modalities are present
     """
 
+    print("Entering Shape Meta From Dataset")
     shape_meta = {}
 
     # read demo file for some metadata
@@ -148,6 +149,8 @@ def get_shape_metadata_from_dataset(dataset_path, all_obs_keys=None, verbose=Fal
     if all_obs_keys is None:
         # use all modalities present in the file
         all_obs_keys = [k for k in demo["obs"]]
+    
+    print("All Obs Key: ", all_obs_keys)
 
     for k in sorted(all_obs_keys):
         initial_shape = demo["obs/{}".format(k)].shape[1:]
@@ -166,6 +169,7 @@ def get_shape_metadata_from_dataset(dataset_path, all_obs_keys=None, verbose=Fal
     shape_meta['use_images'] = ObsUtils.has_modality("rgb", all_obs_keys)
     shape_meta['use_depths'] = ObsUtils.has_modality("depth", all_obs_keys)
 
+    print("Shape Meta Depths: ", shape_meta['use_depths'])
     return shape_meta
 
 

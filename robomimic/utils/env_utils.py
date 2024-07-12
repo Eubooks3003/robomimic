@@ -33,12 +33,15 @@ def get_env_class(env_meta=None, env_type=None, env=None):
     """
     env_type = get_env_type(env_meta=env_meta, env_type=env_type, env=env)
     if env_type == EB.EnvType.ROBOSUITE_TYPE:
+        print("Robosuite Env")
         from robomimic.envs.env_robosuite import EnvRobosuite
         return EnvRobosuite
     elif env_type == EB.EnvType.GYM_TYPE:
+        print("Env Gym")
         from robomimic.envs.env_gym import EnvGym
         return EnvGym
     elif env_type == EB.EnvType.IG_MOMART_TYPE:
+        print("Env Gibson Momart")
         from robomimic.envs.env_ig_momart import EnvGibsonMOMART
         return EnvGibsonMOMART
     raise Exception("code should never reach this point")
@@ -335,7 +338,9 @@ def wrap_env_from_config(env, config):
     to use (if any).
     """
     if ("frame_stack" in config.train) and (config.train.frame_stack > 1):
+        print("Wrapping Environment")
         from robomimic.envs.wrappers import FrameStackWrapper
         env = FrameStackWrapper(env, num_frames=config.train.frame_stack)
-
+    else:
+        print("Did not wrap environment")
     return env

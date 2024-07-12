@@ -186,6 +186,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.total_num_sequences = 0
         for ep in self.demos:
             demo_length = self.hdf5_file["data/{}".format(ep)].attrs["num_samples"]
+            print("Demo Length: ", demo_length)
             self._demo_id_to_start_indices[ep] = self.total_num_sequences
             self._demo_id_to_demo_length[ep] = demo_length
 
@@ -402,6 +403,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         """
         if self.hdf5_cache_mode == "all":
             return self.getitem_cache[index]
+        print("Getting Item")
         return self.get_item(index)
 
     def get_item(self, index):
@@ -428,6 +430,8 @@ class SequenceDataset(torch.utils.data.Dataset):
             num_frames_to_stack=self.n_frame_stack - 1, # note: need to decrement self.n_frame_stack by one
             seq_length=self.seq_length
         )
+
+        # print("Meta: ", meta)
 
         # determine goal index
         goal_index = None
@@ -463,7 +467,7 @@ class SequenceDataset(torch.utils.data.Dataset):
                 prefix="next_obs",
             )
             meta["goal_obs"] = {k: goal[k][0] for k in goal}  # remove sequence dimension for goal
-
+        # print("Final Meta: ", meta)
         return meta
 
     def get_sequence_from_demo(self, demo_id, index_in_demo, keys, num_frames_to_stack=0, seq_length=1):
