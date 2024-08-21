@@ -1,0 +1,476 @@
+
+============= Initialized Observation Utils with Obs Spec =============
+
+using obs modality: low_dim with keys: ['top_x_velocity', 'right_thigh_joint_angle', 'left_foot_joint_angle', 'top_angle', 'top_angular_velocity', 'left_leg_joint_angle', 'right_thigh_joint_angular_velocity', 'left_foot_joint_angular_velocity', 'right_foot_joint_angular_velocity', 'right_leg_joint_angle', 'top_height', 'left_thigh_joint_angle', 'left_leg_joint_angular_velocity', 'top_z_velocity', 'right_foot_joint_angle', 'right_leg_joint_angular_velocity', 'left_thigh_joint_angular_velocity']
+using obs modality: rgb with keys: []
+using obs modality: depth with keys: []
+using obs modality: scan with keys: []
+
+============= Loaded Environment Metadata =============
+Entering Shape Meta From Dataset
+All Obs Key:  ['left_foot_joint_angle', 'left_foot_joint_angular_velocity', 'left_leg_joint_angle', 'left_leg_joint_angular_velocity', 'left_thigh_joint_angle', 'left_thigh_joint_angular_velocity', 'right_foot_joint_angle', 'right_foot_joint_angular_velocity', 'right_leg_joint_angle', 'right_leg_joint_angular_velocity', 'right_thigh_joint_angle', 'right_thigh_joint_angular_velocity', 'top_angle', 'top_angular_velocity', 'top_height', 'top_x_velocity', 'top_z_velocity']
+obs key left_foot_joint_angle with shape (1,)
+obs key left_foot_joint_angular_velocity with shape (1,)
+obs key left_leg_joint_angle with shape (1,)
+obs key left_leg_joint_angular_velocity with shape (1,)
+obs key left_thigh_joint_angle with shape (1,)
+obs key left_thigh_joint_angular_velocity with shape (1,)
+obs key right_foot_joint_angle with shape (1,)
+obs key right_foot_joint_angular_velocity with shape (1,)
+obs key right_leg_joint_angle with shape (1,)
+obs key right_leg_joint_angular_velocity with shape (1,)
+obs key right_thigh_joint_angle with shape (1,)
+obs key right_thigh_joint_angular_velocity with shape (1,)
+obs key top_angle with shape (1,)
+obs key top_angular_velocity with shape (1,)
+obs key top_height with shape (1,)
+obs key top_x_velocity with shape (1,)
+obs key top_z_velocity with shape (1,)
+Shape Meta Depths:  False
+Shape Meta:  {'ac_dim': 6, 'all_shapes': OrderedDict([('left_foot_joint_angle', [1]), ('left_foot_joint_angular_velocity', [1]), ('left_leg_joint_angle', [1]), ('left_leg_joint_angular_velocity', [1]), ('left_thigh_joint_angle', [1]), ('left_thigh_joint_angular_velocity', [1]), ('right_foot_joint_angle', [1]), ('right_foot_joint_angular_velocity', [1]), ('right_leg_joint_angle', [1]), ('right_leg_joint_angular_velocity', [1]), ('right_thigh_joint_angle', [1]), ('right_thigh_joint_angular_velocity', [1]), ('top_angle', [1]), ('top_angular_velocity', [1]), ('top_height', [1]), ('top_x_velocity', [1]), ('top_z_velocity', [1])]), 'all_obs_keys': ['left_foot_joint_angle', 'left_foot_joint_angular_velocity', 'left_leg_joint_angle', 'left_leg_joint_angular_velocity', 'left_thigh_joint_angle', 'left_thigh_joint_angular_velocity', 'right_foot_joint_angle', 'right_foot_joint_angular_velocity', 'right_leg_joint_angle', 'right_leg_joint_angular_velocity', 'right_thigh_joint_angle', 'right_thigh_joint_angular_velocity', 'top_angle', 'top_angular_velocity', 'top_height', 'top_x_velocity', 'top_z_velocity'], 'use_images': False, 'use_depths': False}
+Rollout ENABLED
+In collision driver
+In collision driver
+In collision driver
+An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+
+============= Model Summary =============
+ObservationKeyToModalityDict: action not found, adding action to mapping with assumed low_dim modality!
+BC (
+  ModuleDict(
+    (policy): ActorNetwork(
+        action_dim=6
+  
+        encoder=ObservationGroupEncoder(
+            group=obs
+            ObservationEncoder(
+                Key(
+                    name=left_foot_joint_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=left_foot_joint_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=left_leg_joint_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=left_leg_joint_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=left_thigh_joint_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=left_thigh_joint_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=right_foot_joint_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=right_foot_joint_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=right_leg_joint_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=right_leg_joint_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=right_thigh_joint_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=right_thigh_joint_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=top_angle
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=top_angular_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=top_height
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=top_x_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                Key(
+                    name=top_z_velocity
+                    shape=[1]
+                    modality=low_dim
+                    randomizer=None
+                    net=None
+                    sharing_from=None
+                )
+                output_shape=[17]
+            )
+        )
+  
+        mlp=MLP(
+            input_dim=17
+            output_dim=1024
+            layer_dims=[1024]
+            layer_func=Linear
+            dropout=None
+            act=ReLU
+            output_act=ReLU
+        )
+  
+        decoder=ObservationDecoder(
+            Key(
+                name=action
+                shape=(6,)
+                modality=low_dim
+                net=(Linear(in_features=1024, out_features=6, bias=True))
+            )
+        )
+    )
+  )
+)
+
+Not validate
+DS KWARGS:  {'hdf5_path': '/home/zhangel9/Working/Trajectories/walker2d_rollout.hdf5', 'obs_keys': ['left_foot_joint_angle', 'left_foot_joint_angular_velocity', 'left_leg_joint_angle', 'left_leg_joint_angular_velocity', 'left_thigh_joint_angle', 'left_thigh_joint_angular_velocity', 'right_foot_joint_angle', 'right_foot_joint_angular_velocity', 'right_leg_joint_angle', 'right_leg_joint_angular_velocity', 'right_thigh_joint_angle', 'right_thigh_joint_angular_velocity', 'top_angle', 'top_angular_velocity', 'top_height', 'top_x_velocity', 'top_z_velocity'], 'dataset_keys': ['actions', 'rewards', 'dones'], 'load_next_obs': False, 'frame_stack': 1, 'seq_length': 1, 'pad_frame_stack': True, 'pad_seq_length': True, 'get_pad_mask': False, 'goal_mode': None, 'hdf5_cache_mode': 'all', 'hdf5_use_swmr': True, 'hdf5_normalize_obs': False, 'filter_by_attribute': None}
+Demo Length:  1004
+Demo Length:  990
+Demo Length:  981
+Demo Length:  1014
+Demo Length:  1007
+Demo Length:  1010
+Demo Length:  984
+Demo Length:  994
+Demo Length:  998
+Demo Length:  1002
+Demo Length:  986
+Demo Length:  1001
+Demo Length:  1017
+Demo Length:  1015
+Demo Length:  982
+Demo Length:  1004
+Demo Length:  994
+Demo Length:  1006
+Demo Length:  1005
+Demo Length:  980
+Demo Length:  1003
+Demo Length:  1013
+Demo Length:  1007
+Demo Length:  1003
+Demo Length:  985
+Demo Length:  992
+Demo Length:  1003
+Demo Length:  1005
+Demo Length:  1011
+Demo Length:  983
+Demo Length:  1001
+Demo Length:  991
+Demo Length:  997
+Demo Length:  1008
+Demo Length:  1017
+Demo Length:  989
+Demo Length:  1003
+Demo Length:  1019
+Demo Length:  997
+Demo Length:  997
+Demo Length:  984
+Demo Length:  990
+Demo Length:  1009
+Demo Length:  1004
+Demo Length:  1016
+Demo Length:  1006
+Demo Length:  1003
+Demo Length:  1018
+Demo Length:  980
+Demo Length:  1017
+Demo Length:  991
+Demo Length:  999
+Demo Length:  1002
+Demo Length:  995
+Demo Length:  1007
+Demo Length:  1020
+Demo Length:  1014
+Demo Length:  997
+Demo Length:  1005
+Demo Length:  1013
+Demo Length:  993
+Demo Length:  1002
+Demo Length:  983
+Demo Length:  1013
+Demo Length:  1007
+Demo Length:  991
+Demo Length:  996
+Demo Length:  1006
+Demo Length:  988
+Demo Length:  991
+Demo Length:  986
+Demo Length:  991
+Demo Length:  982
+Demo Length:  1007
+Demo Length:  1010
+Demo Length:  1014
+Demo Length:  999
+Demo Length:  993
+Demo Length:  1020
+Demo Length:  998
+Demo Length:  1015
+Demo Length:  999
+Demo Length:  1005
+Demo Length:  994
+Demo Length:  989
+Demo Length:  1008
+Demo Length:  1018
+Demo Length:  997
+Demo Length:  980
+Demo Length:  994
+Demo Length:  997
+Demo Length:  994
+Demo Length:  991
+Demo Length:  1006
+Demo Length:  983
+Demo Length:  1019
+Demo Length:  1003
+Demo Length:  992
+Demo Length:  1006
+Demo Length:  983
+Demo Length:  989
+Demo Length:  1003
+Demo Length:  1009
+Demo Length:  1009
+Demo Length:  1006
+Demo Length:  1001
+Demo Length:  992
+Demo Length:  989
+Demo Length:  980
+Demo Length:  988
+Demo Length:  980
+Demo Length:  1016
+Demo Length:  995
+Demo Length:  1012
+Demo Length:  1019
+Demo Length:  1012
+Demo Length:  1020
+Demo Length:  1016
+Demo Length:  1009
+Demo Length:  994
+Demo Length:  1006
+Demo Length:  1001
+Demo Length:  1015
+Demo Length:  981
+Demo Length:  1003
+Demo Length:  1010
+Demo Length:  997
+Demo Length:  1019
+Demo Length:  984
+Demo Length:  1010
+Demo Length:  989
+Demo Length:  988
+Demo Length:  984
+Demo Length:  1008
+Demo Length:  988
+Demo Length:  988
+Demo Length:  1005
+Demo Length:  1016
+Demo Length:  1019
+Demo Length:  1018
+Demo Length:  998
+Demo Length:  1005
+Demo Length:  988
+Demo Length:  1005
+Demo Length:  1007
+Demo Length:  1017
+Demo Length:  987
+Demo Length:  998
+Demo Length:  995
+Demo Length:  1003
+Demo Length:  1018
+Demo Length:  983
+Demo Length:  1005
+Demo Length:  981
+Demo Length:  1009
+Demo Length:  1000
+Demo Length:  1004
+Demo Length:  1013
+Demo Length:  1018
+Demo Length:  982
+Demo Length:  1019
+Demo Length:  995
+Demo Length:  1019
+Demo Length:  993
+Demo Length:  1002
+Demo Length:  985
+Demo Length:  990
+Demo Length:  998
+Demo Length:  991
+Demo Length:  990
+Demo Length:  1014
+Demo Length:  1014
+Demo Length:  1011
+Demo Length:  1019
+Demo Length:  1004
+Demo Length:  1020
+Demo Length:  981
+Demo Length:  1006
+Demo Length:  996
+Demo Length:  990
+Demo Length:  1019
+Demo Length:  981
+Demo Length:  980
+Demo Length:  1010
+Demo Length:  993
+Demo Length:  1013
+Demo Length:  1010
+Demo Length:  999
+Demo Length:  985
+Demo Length:  1018
+Demo Length:  1006
+Demo Length:  991
+Demo Length:  1005
+Demo Length:  1003
+Demo Length:  1019
+Demo Length:  1020
+Demo Length:  988
+Demo Length:  994
+Demo Length:  998
+Demo Length:  989
+SequenceDataset: loading dataset into memory...
+  0%|          | 0/200 [00:00<?, ?it/s] 63%|######3   | 126/200 [00:00<00:00, 1254.51it/s]100%|##########| 200/200 [00:00<00:00, 1241.64it/s]
+SequenceDataset: caching get_item calls...
+  0%|          | 0/200153 [00:00<?, ?it/s]  1%|1         | 2569/200153 [00:00<00:07, 25681.15it/s]  3%|2         | 5163/200153 [00:00<00:07, 25831.99it/s]  4%|3         | 7747/200153 [00:00<00:07, 25828.27it/s]  5%|5         | 10330/200153 [00:00<00:07, 25817.27it/s]  6%|6         | 12923/200153 [00:00<00:07, 25856.92it/s]  8%|7         | 15509/200153 [00:00<00:07, 25828.79it/s]  9%|9         | 18092/200153 [00:00<00:07, 25802.96it/s] 10%|#         | 20682/200153 [00:00<00:06, 25831.76it/s] 12%|#1        | 23266/200153 [00:00<00:06, 25811.89it/s] 13%|#2        | 25853/200153 [00:01<00:06, 25829.34it/s] 14%|#4        | 28436/200153 [00:01<00:06, 25806.45it/s] 15%|#5        | 31017/200153 [00:01<00:06, 25777.69it/s] 17%|#6        | 33605/200153 [00:01<00:06, 25808.23it/s] 18%|#8        | 36186/200153 [00:01<00:06, 25787.63it/s] 19%|#9        | 38765/200153 [00:01<00:06, 25787.94it/s] 21%|##        | 41351/200153 [00:01<00:06, 25808.14it/s] 22%|##1       | 43932/200153 [00:01<00:06, 25774.73it/s] 23%|##3       | 46510/200153 [00:01<00:05, 25770.42it/s] 25%|##4       | 49098/200153 [00:01<00:05, 25801.93it/s] 26%|##5       | 51679/200153 [00:02<00:05, 25786.36it/s] 27%|##7       | 54265/200153 [00:02<00:05, 25805.61it/s] 28%|##8       | 56846/200153 [00:02<00:05, 25777.04it/s] 30%|##9       | 59424/200153 [00:02<00:05, 25759.59it/s] 31%|###       | 62009/200153 [00:02<00:05, 25785.41it/s] 32%|###2      | 64588/200153 [00:02<00:06, 21162.58it/s] 34%|###3      | 67155/200153 [00:02<00:05, 22332.68it/s] 35%|###4      | 69732/200153 [00:02<00:05, 23261.48it/s] 36%|###6      | 72300/200153 [00:02<00:05, 23934.24it/s] 37%|###7      | 74868/200153 [00:02<00:05, 24429.99it/s] 39%|###8      | 77445/200153 [00:03<00:04, 24815.82it/s] 40%|###9      | 80014/200153 [00:03<00:04, 25068.78it/s] 41%|####1     | 82592/200153 [00:03<00:04, 25277.93it/s] 43%|####2     | 85160/200153 [00:03<00:04, 25394.08it/s] 44%|####3     | 87728/200153 [00:03<00:04, 25478.80it/s] 45%|####5     | 90309/200153 [00:03<00:04, 25575.80it/s] 46%|####6     | 92879/200153 [00:03<00:04, 25612.55it/s] 48%|####7     | 95446/200153 [00:03<00:04, 25628.94it/s] 49%|####8     | 98027/200153 [00:03<00:03, 25681.51it/s] 50%|#####     | 100598/200153 [00:03<00:03, 25684.20it/s] 52%|#####1    | 103175/200153 [00:04<00:03, 25708.90it/s] 53%|#####2    | 105748/200153 [00:04<00:03, 25703.41it/s] 54%|#####4    | 108320/200153 [00:04<00:03, 25701.78it/s] 55%|#####5    | 110901/200153 [00:04<00:03, 25732.82it/s] 57%|#####6    | 113475/200153 [00:04<00:03, 25726.19it/s] 58%|#####7    | 116048/200153 [00:04<00:03, 25718.13it/s] 59%|#####9    | 118630/200153 [00:04<00:03, 25747.54it/s] 61%|######    | 121205/200153 [00:04<00:03, 25732.98it/s] 62%|######1   | 123790/200153 [00:04<00:02, 25764.97it/s] 63%|######3   | 126367/200153 [00:04<00:02, 25742.66it/s] 64%|######4   | 128942/200153 [00:05<00:02, 25713.38it/s] 66%|######5   | 131516/200153 [00:05<00:02, 25720.79it/s] 67%|######6   | 134089/200153 [00:05<00:02, 25718.63it/s] 68%|######8   | 136661/200153 [00:05<00:02, 25694.92it/s] 70%|######9   | 139242/200153 [00:05<00:02, 25728.27it/s] 71%|#######   | 141815/200153 [00:05<00:02, 25710.95it/s] 72%|#######2  | 144393/200153 [00:05<00:02, 25728.53it/s] 73%|#######3  | 146966/200153 [00:05<00:02, 25716.96it/s] 75%|#######4  | 149538/200153 [00:05<00:01, 25717.16it/s] 76%|#######6  | 152117/200153 [00:05<00:01, 25737.59it/s] 77%|#######7  | 154691/200153 [00:06<00:01, 25704.75it/s] 79%|#######8  | 157262/200153 [00:06<00:01, 25687.89it/s] 80%|#######9  | 159842/200153 [00:06<00:01, 25719.99it/s] 81%|########1 | 162415/200153 [00:06<00:01, 25699.95it/s] 82%|########2 | 164992/200153 [00:06<00:01, 25719.99it/s] 84%|########3 | 167565/200153 [00:06<00:01, 25702.67it/s] 85%|########5 | 170136/200153 [00:06<00:01, 25688.23it/s] 86%|########6 | 172717/200153 [00:06<00:01, 25723.45it/s] 88%|########7 | 175290/200153 [00:06<00:01, 19865.73it/s] 89%|########8 | 177866/200153 [00:07<00:01, 21329.44it/s] 90%|######### | 180441/200153 [00:07<00:00, 22472.21it/s] 91%|#########1| 183023/200153 [00:07<00:00, 23382.42it/s] 93%|#########2| 185596/200153 [00:07<00:00, 24039.47it/s] 94%|#########4| 188177/200153 [00:07<00:00, 24544.26it/s] 95%|#########5| 190753/200153 [00:07<00:00, 24895.45it/s] 97%|#########6| 193328/200153 [00:07<00:00, 25145.09it/s] 98%|#########7| 195916/200153 [00:07<00:00, 25359.46it/s] 99%|#########9| 198490/200153 [00:07<00:00, 25471.76it/s]100%|##########| 200153/200153 [00:07<00:00, 25195.15it/s]
+
+============= Training Dataset =============
+SequenceDataset (
+	path=/home/zhangel9/Working/Trajectories/walker2d_rollout.hdf5
+	obs_keys=('left_foot_joint_angle', 'left_foot_joint_angular_velocity', 'left_leg_joint_angle', 'left_leg_joint_angular_velocity', 'left_thigh_joint_angle', 'left_thigh_joint_angular_velocity', 'right_foot_joint_angle', 'right_foot_joint_angular_velocity', 'right_leg_joint_angle', 'right_leg_joint_angular_velocity', 'right_thigh_joint_angle', 'right_thigh_joint_angular_velocity', 'top_angle', 'top_angular_velocity', 'top_height', 'top_x_velocity', 'top_z_velocity')
+	seq_length=1
+	filter_key=none
+	frame_stack=1
+	pad_seq_length=True
+	pad_frame_stack=True
+	goal_mode=none
+	cache_mode=all
+	num_demos=200
+	num_sequences=200153
+)
+
+**************************************************
+Warnings generated by robomimic have been duplicated here (from above) for convenience. Please check them carefully.
+[33mROBOMIMIC WARNING(
+    No private macro file found!
+    It is recommended to use a private macro file
+    To setup, run: python /home/zhangel9/.local/lib/python3.10/site-packages/robomimic-0.3.0-py3.10.egg/robomimic/scripts/setup_macros.py
+)[0m
+**************************************************
+
+  0%|          | 0/100 [00:00<?, ?it/s] 13%|#3        | 13/100 [00:00<00:00, 124.27it/s] 28%|##8       | 28/100 [00:00<00:00, 133.18it/s] 43%|####3     | 43/100 [00:00<00:00, 137.65it/s] 58%|#####8    | 58/100 [00:00<00:00, 139.99it/s] 72%|#######2  | 72/100 [00:00<00:00, 139.47it/s] 87%|########7 | 87/100 [00:00<00:00, 141.15it/s]100%|##########| 100/100 [00:00<00:00, 139.62it/s]
+Train Epoch 1
+{
+    "Cosine_Loss": 0.1169511753693223,
+    "L1_Loss": 0.06467244531959296,
+    "L2_Loss": 0.1309586748480797,
+    "Loss": 0.1309586748480797,
+    "Optimizer/policy0_lr": 0.0001,
+    "Policy_Grad_Norms": 0.6010202901518369,
+    "Time_Data_Loading": 0.0036281466484069822,
+    "Time_Epoch": 0.011949483553568523,
+    "Time_Log_Info": 1.7913182576497397e-05,
+    "Time_Process_Batch": 0.00020058155059814452,
+    "Time_Train_Batch": 0.008073250452677408
+}
+run failed with error:
+The directory '/home/zhangel9/Working/20240816173105/videos' does not exist
+
+Traceback (most recent call last):
+  File "/home/zhangel9/Working/robomimic/robomimic/scripts/train.py", line 381, in main
+    train(config, device=device)
+  File "/home/zhangel9/Working/robomimic/robomimic/scripts/train.py", line 263, in train
+    all_rollout_logs, video_paths = TrainUtils.rollout_with_stats(
+  File "/home/zhangel9/.local/lib/python3.10/site-packages/robomimic-0.3.0-py3.10.egg/robomimic/utils/train_utils.py", line 405, in rollout_with_stats
+    video_writers = { k : imageio.get_writer(video_paths[k], fps=20) for k in envs }
+  File "/home/zhangel9/.local/lib/python3.10/site-packages/robomimic-0.3.0-py3.10.egg/robomimic/utils/train_utils.py", line 405, in <dictcomp>
+    video_writers = { k : imageio.get_writer(video_paths[k], fps=20) for k in envs }
+  File "/home/zhangel9/.local/lib/python3.10/site-packages/imageio/v2.py", line 324, in get_writer
+    image_file = imopen(uri, "w" + mode, **imopen_args)
+  File "/home/zhangel9/.local/lib/python3.10/site-packages/imageio/core/imopen.py", line 113, in imopen
+    request = Request(uri, io_mode, format_hint=format_hint, extension=extension)
+  File "/home/zhangel9/.local/lib/python3.10/site-packages/imageio/core/request.py", line 247, in __init__
+    self._parse_uri(uri)
+  File "/home/zhangel9/.local/lib/python3.10/site-packages/imageio/core/request.py", line 412, in _parse_uri
+    raise FileNotFoundError("The directory %r does not exist" % dn)
+FileNotFoundError: The directory '/home/zhangel9/Working/20240816173105/videos' does not exist
+

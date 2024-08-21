@@ -227,11 +227,23 @@ class BaseConfig(Config):
         # ]
 
         self.observation.modalities.obs.low_dim = [
-                'joint_positions',
-                'joint_velocities',
-                'tip_position',
-                'object_position',
-                'goal_position'
+            'top_height',  # Z-coordinate of the top (height of hopper)
+            'top_angle',  # Angle of the top
+            'right_thigh_joint_angle',  # Angle of the right thigh joint
+            'right_leg_joint_angle',  # Angle of the right leg joint
+            'right_foot_joint_angle',  # Angle of the right foot joint
+            'left_thigh_joint_angle',  # Angle of the left thigh joint
+            'left_leg_joint_angle',  # Angle of the left leg joint
+            'left_foot_joint_angle',  # Angle of the left foot joint
+            'top_x_velocity',  # Velocity of the x-coordinate of the top
+            'top_z_velocity',  # Velocity of the z-coordinate (height) of the top
+            'top_angular_velocity',  # Angular velocity of the angle of the top
+            'right_thigh_joint_angular_velocity',  # Angular velocity of the right thigh hinge
+            'right_leg_joint_angular_velocity',  # Angular velocity of the right leg hinge
+            'right_foot_joint_angular_velocity',  # Angular velocity of the right foot hinge
+            'left_thigh_joint_angular_velocity',  # Angular velocity of the left thigh hinge
+            'left_leg_joint_angular_velocity',  # Angular velocity of the left leg hinge
+            'left_foot_joint_angular_velocity'  # Angular velocity of the left foot hinge
         ]
 
         self.observation.modalities.obs.rgb = []              # specify rgb image observations for agent

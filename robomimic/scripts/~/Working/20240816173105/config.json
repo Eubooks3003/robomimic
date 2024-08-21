@@ -15,7 +15,7 @@
             "every_n_epochs": 50,
             "epochs": [],
             "on_best_validation": false,
-            "on_best_rollout_return": true,
+            "on_best_rollout_return": false,
             "on_best_rollout_success_rate": true
         },
         "epoch_every_n_steps": 100,
@@ -28,7 +28,7 @@
         "video_skip": 5,
         "rollout": {
             "enabled": true,
-            "n": 1,
+            "n": 50,
             "horizon": 1000,
             "rate": 1,
             "warmstart": 0,
@@ -36,7 +36,7 @@
         }
     },
     "train": {
-        "data": null,
+        "data": "/home/zhangel9/Working/Trajectories/walker2d_rollout.hdf5",
         "output_dir": "../bc_trained_models",
         "num_data_workers": 0,
         "hdf5_cache_mode": "all",
@@ -163,24 +163,24 @@
     "observation": {
         "modalities": {
             "obs": {
-                "low_dim":[
-                    "top_height", 
-                    "top_angle", 
-                    "right_thigh_joint_angle", 
-                    "right_leg_joint_angle",  
-                    "right_foot_joint_angle",  
-                    "left_thigh_joint_angle",  
-                    "left_leg_joint_angle", 
-                    "left_foot_joint_angle",  
-                    "top_x_velocity", 
-                    "top_z_velocity",  
-                    "top_angular_velocity",  
-                    "right_thigh_joint_angular_velocity",  
-                    "right_leg_joint_angular_velocity",  
-                    "right_foot_joint_angular_velocity", 
-                    "left_thigh_joint_angular_velocity",  
-                    "left_leg_joint_angular_velocity",  
-                    "left_foot_joint_angular_velocity" 
+                "low_dim": [
+                    "top_height",
+                    "top_angle",
+                    "right_thigh_joint_angle",
+                    "right_leg_joint_angle",
+                    "right_foot_joint_angle",
+                    "left_thigh_joint_angle",
+                    "left_leg_joint_angle",
+                    "left_foot_joint_angle",
+                    "top_x_velocity",
+                    "top_z_velocity",
+                    "top_angular_velocity",
+                    "right_thigh_joint_angular_velocity",
+                    "right_leg_joint_angular_velocity",
+                    "right_foot_joint_angular_velocity",
+                    "left_thigh_joint_angular_velocity",
+                    "left_leg_joint_angular_velocity",
+                    "left_foot_joint_angular_velocity"
                 ],
                 "rgb": [],
                 "depth": [],

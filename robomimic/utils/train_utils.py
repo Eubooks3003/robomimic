@@ -32,6 +32,7 @@ import sys
 from memory_profiler import LogFile
 
 import jax
+from brax.io import html
 # sys.stdout = LogFile('memory_profile_log', reportIncrementFlag=False)
 
 
@@ -72,6 +73,7 @@ def get_exp_dir(config, auto_remove_exp_dir=False):
             print("REMOVING")
             shutil.rmtree(base_output_dir)
 
+
     # only make model directory if model saving is enabled
     output_dir = None
     if config.experiment.save.enabled:
@@ -85,7 +87,12 @@ def get_exp_dir(config, auto_remove_exp_dir=False):
     # video directory
     video_dir = os.path.join(base_output_dir, time_str, "videos")
     os.makedirs(video_dir)
-    return log_dir, output_dir, video_dir
+
+    # html directory
+
+    html_dir = os.path.join(base_output_dir, time_str, "htmls")
+    os.makedirs(html_dir)
+    return log_dir, output_dir, video_dir, html_dir
 
 
 def load_data_for_training(config, obs_keys):
@@ -179,11 +186,39 @@ def dataset_factory(config, obs_keys, filter_by_attribute=None, dataset_path=Non
 
     return dataset
 
+def extract_observations(obs_array, obs_index, return_type = 'numpy'):
+    """
+    Extracts subarrays from a full observation array based on specified indices.
+    
+    Args:
+    obs_array (list or numpy array): The full observation array from the environment.
+    obs_index (dict): A dictionary with keys describing the data and values being tuples
+                      indicating the start and end indices of the subarrays.
+
+    Returns:
+    dict: A dictionary with the same keys as obs_index where each key corresponds to
+          the subarray of obs_array defined by the indices in obs_index.
+    """
+    extracted_observations = {}
+    for key, (start, end) in obs_index.items():
+        subarray = obs_array[start:end]
+        if return_type == 'numpy':
+            extracted_observations[key] = np.array(subarray)
+        elif return_type == 'torch':
+            import torch
+            extracted_observations[key] = torch.tensor(subarray)
+        else:
+            raise ValueError("return_type must be either 'numpy' or 'torch'")
+    return extracted_observations
+
 
 def run_rollout(
         policy, 
         env, 
         horizon,
+        episode,
+        epoch,
+        html_paths,
         use_goals=False,
         render=False,
         video_writer=None,
@@ -217,10 +252,30 @@ def run_rollout(
     assert isinstance(policy, RolloutPolicy)
     # assert isinstance(env, EnvBase) or isinstance(env, EnvWrapper)
 
+    obs_index = {
+        'top_height': (0, 1),  # Z-coordinate of the top (height of hopper)
+        'top_angle': (1, 2),  # Angle of the top
+        'right_thigh_joint_angle': (2, 3),  # Angle of the right thigh joint
+        'right_leg_joint_angle': (3, 4),  # Angle of the right leg joint
+        'right_foot_joint_angle': (4, 5),  # Angle of the right foot joint
+        'left_thigh_joint_angle': (5, 6),  # Angle of the left thigh joint
+        'left_leg_joint_angle': (6, 7),  # Angle of the left leg joint
+        'left_foot_joint_angle': (7, 8),  # Angle of the left foot joint
+        'top_x_velocity': (8, 9),  # Velocity of the x-coordinate of the top
+        'top_z_velocity': (9, 10),  # Velocity of the z-coordinate (height) of the top
+        'top_angular_velocity': (10, 11),  # Angular velocity of the angle of the top
+        'right_thigh_joint_angular_velocity': (11, 12),  # Angular velocity of the right thigh hinge
+        'right_leg_joint_angular_velocity': (12, 13),  # Angular velocity of the right leg hinge
+        'right_foot_joint_angular_velocity': (13, 14),  # Angular velocity of the right foot hinge
+        'left_thigh_joint_angular_velocity': (14, 15),  # Angular velocity of the left thigh hinge
+        'left_leg_joint_angular_velocity': (15, 16),  # Angular velocity of the left leg hinge
+        'left_foot_joint_angular_velocity': (16, 17)  # Angular velocity of the left foot hinge
+    }
+
     policy.start_episode()
     rng = jax.random.PRNGKey(seed=0)
 
-    ob_dict = env.reset()
+    # ob_dict = env.reset()
     goal_dict = None
     if use_goals:
         # retrieve goal from the environment
@@ -230,54 +285,63 @@ def run_rollout(
     video_count = 0  # video frame counter
 
     total_reward = 0.
-    success = { k: False for k in env.is_success() } # success metrics
+    # success = { k: False for k in env.is_success() } # success metrics
 
-    try:
-        for step_i in range(horizon):
+    rollout = []
+    jit_env_reset = jax.jit(env.reset)
+    jit_env_step = jax.jit(env.step)
 
-            # get action from policy
-            print("Obs Dict: ", ob_dict)
-            ac = policy(ob=ob_dict, goal=goal_dict)
+    state = jit_env_reset(rng)
 
-            # play action
-            ob_dict, r, done, _ = env.step(ac)
+    actions_list = []
+    states_list = []
 
-            # render to screen
-            if render:
-                env.render(mode="human")
+    for step_i in range(horizon):
 
-            # compute reward
-            total_reward += r
+        rollout.append(state.pipeline_state)
 
-            cur_success_metrics = env.is_success()
-            for k in success:
-                success[k] = success[k] or cur_success_metrics[k]
+        # get action from policy
+        ob_dict = extract_observations(state.obs, obs_index)
+        # print("Obs Dict: ", ob_dict)
 
-            # visualization
-            if video_writer is not None:
-                if video_count % video_skip == 0:
-                    video_img = env.render(mode="rgb_array", height=512, width=512)
-                    video_writer.append_data(video_img)
+        ac = policy(ob=ob_dict, goal=goal_dict)
+        # print("Action: ", ac)
+        # play action
+        state = jit_env_step(state, ac)
 
-                video_count += 1
+        r = float(state.reward)
 
-            # break if done
-            if done or (terminate_on_success and success["task"]):
-                break
+        actions_list.append(ac)
+        states_list.append(state.obs)
 
-    except env.rollout_exceptions as e:
-        print("WARNING: got rollout exception {}".format(e))
-    # except Exception as e:
-    #     print(f"WARNING: got rollout exception {e}")
+        total_reward += r
+
+    rendered_html = html.render(env.sys.tree_replace({'opt.timestep': env.dt}), rollout)
+    
+    # Save HTML to a file
+    html_file_path = html_paths[episode]
+    with open(html_file_path, 'w') as file:
+        file.write(rendered_html)
+    print(f"Rendered HTML saved to {html_file_path}")
+
+    observation_size = env.observation_size
+    action_size = env.action_size
+    with h5py.File(f'bc_trajectories.hdf5', 'w') as f:
+        demo_group = f.create_group(f"data/demo_{epoch}_{episode}")
+        actions_ds = demo_group.create_dataset("actions", (horizon, action_size), dtype='f8')
+        states_ds = demo_group.create_dataset("states", (horizon, observation_size), dtype='f8')
+
+        actions_ds[:] = np.array(actions_list)
+        states_ds[:] = np.array(states_list)
 
     results["Return"] = total_reward
     results["Horizon"] = step_i + 1
-    results["Success_Rate"] = float(success["task"])
+    # results["Success_Rate"] = float(success["task"])
 
     # log additional success metrics
-    for k in success:
-        if k != "task":
-            results["{}_Success_Rate".format(k)] = float(success[k])
+    # for k in success:
+    #     if k != "task":
+    #         results["{}_Success_Rate".format(k)] = float(success[k])
 
     return results
 
@@ -289,6 +353,7 @@ def rollout_with_stats(
         num_episodes=None,
         render=False,
         video_dir=None,
+        html_dir = None,
         video_path=None,
         epoch=None,
         video_skip=5,
@@ -348,11 +413,26 @@ def rollout_with_stats(
         video_paths = { k : video_path for k in envs }
         video_writer = imageio.get_writer(video_path, fps=20)
         video_writers = { k : video_writer for k in envs }
+    iterator = range(num_episodes)
     if video_dir is not None:
         # video is written per env
         video_str = "_epoch_{}.mp4".format(epoch) if epoch is not None else ".mp4" 
         video_paths = { k : os.path.join(video_dir, "{}{}".format(k, video_str)) for k in envs }
         video_writers = { k : imageio.get_writer(video_paths[k], fps=20) for k in envs }
+
+        html_paths = {}
+        for episode in iterator:  # Assuming 'iterator' defines the number of episodes per epoch
+            # Define the file name suffixes including epoch and episode
+            video_str = "_epoch_{}_episode_{}.mp4".format(epoch, episode)
+            html_str = "_epoch_{}_episode_{}.html".format(epoch, episode)
+            
+            # Generate paths for video and HTML files
+            video_paths = { k : os.path.join(video_dir, "{}{}".format(k, video_str)) for k in envs }
+            html_paths[episode] = os.path.join(html_dir, "{}".format( html_str))
+            
+            # Create video writers for each environment
+            video_writers = { k : imageio.get_writer(video_paths[k], fps=20) for k in envs }
+            
 
     for env_name, env in envs.items():
         env_video_writer = None
@@ -375,6 +455,9 @@ def rollout_with_stats(
                 policy=policy,
                 env=env,
                 horizon=horizon,
+                episode = ep_i,
+                epoch = epoch,
+                html_paths = html_paths,
                 render=render,
                 use_goals=use_goals,
                 video_writer=env_video_writer,
@@ -383,9 +466,9 @@ def rollout_with_stats(
             )
             rollout_info["time"] = time.time() - rollout_timestamp
             rollout_logs.append(rollout_info)
-            num_success += rollout_info["Success_Rate"]
+            # num_success += rollout_info["Success_Rate"]
             if verbose:
-                print("Episode {}, horizon={}, num_success={}".format(ep_i + 1, horizon, num_success))
+                print("Episode {}, horizon={}".format(ep_i + 1, horizon))
                 print(json.dumps(rollout_info, sort_keys=True, indent=4))
 
             gc.collect()
@@ -453,6 +536,7 @@ def should_save_from_rollout_logs(
         rollout_logs = all_rollout_logs[env_name]
 
         if rollout_logs["Return"] > best_return[env_name]:
+            print("Checkpointing for best return")
             best_return[env_name] = rollout_logs["Return"]
             if save_on_best_rollout_return:
                 # save checkpoint if achieve new best return
@@ -460,13 +544,13 @@ def should_save_from_rollout_logs(
                 should_save_ckpt = True
                 ckpt_reason = "return"
 
-        if rollout_logs["Success_Rate"] > best_success_rate[env_name]:
-            best_success_rate[env_name] = rollout_logs["Success_Rate"]
-            if save_on_best_rollout_success_rate:
-                # save checkpoint if achieve new best success rate
-                epoch_ckpt_name += "_{}_success_{}".format(env_name, best_success_rate[env_name])
-                should_save_ckpt = True
-                ckpt_reason = "success"
+        # if rollout_logs["Success_Rate"] > best_success_rate[env_name]:
+        #     best_success_rate[env_name] = rollout_logs["Success_Rate"]
+        #     if save_on_best_rollout_success_rate:
+        #         # save checkpoint if achieve new best success rate
+        #         epoch_ckpt_name += "_{}_success_{}".format(env_name, best_success_rate[env_name])
+        #         should_save_ckpt = True
+        #         ckpt_reason = "success"
 
     # return the modified input attributes
     return dict(
@@ -478,7 +562,7 @@ def should_save_from_rollout_logs(
     )
 
 
-def save_model(model, config, env_meta, shape_meta, ckpt_path, obs_normalization_stats=None):
+def save_model(model, config, shape_meta, ckpt_path, obs_normalization_stats=None):
     """
     Save model to a torch pth file.
 
@@ -498,13 +582,11 @@ def save_model(model, config, env_meta, shape_meta, ckpt_path, obs_normalization
             with a "mean" and "std" of shape (1, ...) where ... is the default
             shape for the observation.
     """
-    env_meta = deepcopy(env_meta)
     shape_meta = deepcopy(shape_meta)
     params = dict(
         model=model.serialize(),
         config=config.dump(),
         algo_name=config.algo_name,
-        env_metadata=env_meta,
         shape_metadata=shape_meta,
     )
     if obs_normalization_stats is not None:

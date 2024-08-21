@@ -1,7 +1,7 @@
 {
     "algo_name": "bc",
     "experiment": {
-        "name": "test",
+        "name": "test_plr_0.0001_gmm_f_rnnd_400_mlp_1024",
         "validate": false,
         "logging": {
             "terminal_output_to_txt": true,
@@ -15,7 +15,7 @@
             "every_n_epochs": 50,
             "epochs": [],
             "on_best_validation": false,
-            "on_best_rollout_return": true,
+            "on_best_rollout_return": false,
             "on_best_rollout_success_rate": true
         },
         "epoch_every_n_steps": 100,
@@ -28,7 +28,7 @@
         "video_skip": 5,
         "rollout": {
             "enabled": true,
-            "n": 1,
+            "n": 50,
             "horizon": 1000,
             "rate": 1,
             "warmstart": 0,
@@ -45,7 +45,7 @@
         "hdf5_normalize_obs": false,
         "hdf5_filter_key": null,
         "hdf5_validation_filter_key": null,
-        "seq_length": 1,
+        "seq_length": 10,
         "pad_seq_length": true,
         "frame_stack": 1,
         "pad_frame_stack": true,
@@ -135,7 +135,7 @@
             ]
         },
         "rnn": {
-            "enabled": false,
+            "enabled": true,
             "horizon": 10,
             "hidden_dim": 400,
             "rnn_type": "LSTM",
@@ -163,24 +163,24 @@
     "observation": {
         "modalities": {
             "obs": {
-                "low_dim":[
-                    "top_height", 
-                    "top_angle", 
-                    "right_thigh_joint_angle", 
-                    "right_leg_joint_angle",  
-                    "right_foot_joint_angle",  
-                    "left_thigh_joint_angle",  
-                    "left_leg_joint_angle", 
-                    "left_foot_joint_angle",  
-                    "top_x_velocity", 
-                    "top_z_velocity",  
-                    "top_angular_velocity",  
-                    "right_thigh_joint_angular_velocity",  
-                    "right_leg_joint_angular_velocity",  
-                    "right_foot_joint_angular_velocity", 
-                    "left_thigh_joint_angular_velocity",  
-                    "left_leg_joint_angular_velocity",  
-                    "left_foot_joint_angular_velocity" 
+                "low_dim": [
+                    "top_height",
+                    "top_angle",
+                    "right_thigh_joint_angle",
+                    "right_leg_joint_angle",
+                    "right_foot_joint_angle",
+                    "left_thigh_joint_angle",
+                    "left_leg_joint_angle",
+                    "left_foot_joint_angle",
+                    "top_x_velocity",
+                    "top_z_velocity",
+                    "top_angular_velocity",
+                    "right_thigh_joint_angular_velocity",
+                    "right_leg_joint_angular_velocity",
+                    "right_foot_joint_angular_velocity",
+                    "left_thigh_joint_angular_velocity",
+                    "left_leg_joint_angular_velocity",
+                    "left_foot_joint_angular_velocity"
                 ],
                 "rgb": [],
                 "depth": [],
@@ -221,8 +221,18 @@
         }
     },
     "meta": {
-        "hp_base_config_file": null,
-        "hp_keys": [],
-        "hp_values": []
+        "hp_base_config_file": "/home/zhangel9/Working/robomimic/robomimic/exps/templates/bc.json",
+        "hp_keys": [
+            "plr",
+            "gmm",
+            "rnnd",
+            "mlp"
+        ],
+        "hp_values": [
+            0.0001,
+            "f",
+            400,
+            "1024"
+        ]
     }
 }

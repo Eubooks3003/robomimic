@@ -60,7 +60,7 @@ def train(config, device):
     print("\n============= New Training Run with Config =============")
     print(config)
     print("")
-    log_dir, ckpt_dir, video_dir = TrainUtils.get_exp_dir(config)
+    log_dir, ckpt_dir, video_dir, html_dir = TrainUtils.get_exp_dir(config)
 
     if config.experiment.logging.terminal_output_to_txt:
         # log stdout and stderr to a text file
@@ -78,7 +78,7 @@ def train(config, device):
 
     # load basic metadata from training file
     print("\n============= Loaded Environment Metadata =============")
-    env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path=config.train.data)
+    # env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path=config.train.data)
     shape_meta = FileUtils.get_shape_metadata_from_dataset(
         dataset_path=config.train.data,
         all_obs_keys=config.all_obs_keys,
@@ -95,25 +95,14 @@ def train(config, device):
     if config.experiment.rollout.enabled:
         # create environments for validation runs
         print("Rollout ENABLED")
-        env_names = [env_meta["env_name"]]
 
-        if config.experiment.additional_envs is not None:
-            for name in config.experiment.additional_envs:
-                env_names.append(name)
+        env_name = 'walker2d'  # @param ['ant', 'halfcheetah', 'hopper', 'humanoid', 'humanoidstandup', 'inverted_pendulum', 'inverted_double_pendulum', 'pusher', 'reacher', 'walker2d']
+        backend = 'positional'  # @param ['generalized', 'positional', 'spring']
 
-        for env_name in env_names:
-            env = EnvUtils.create_env_from_metadata(
-                env_meta=env_meta,
-                env_name=env_name, 
-                render=False, 
-                render_offscreen=config.experiment.render_video,
-                use_image_obs=shape_meta["use_images"],
-                use_depth_obs=shape_meta["use_depths"],
-            )
-            env = EnvUtils.wrap_env_from_config(env, config=config) # apply environment warpper, if applicable
-            envs[env.name] = env
-            print(envs[env.name])
+        env = brax_envs.get_environment(env_name=env_name,
+                                backend=backend)
 
+        envs[env_name] = env
 
     # env_name = 'pusher' 
     # backend = 'spring'  
@@ -279,6 +268,7 @@ def train(config, device):
                 num_episodes=num_episodes,
                 render=False,
                 video_dir=video_dir if config.experiment.render_video else None,
+                html_dir = html_dir,
                 epoch=epoch,
                 video_skip=config.experiment.get("video_skip", 5),
                 terminate_on_success=config.experiment.rollout.terminate_on_success,
@@ -314,17 +304,18 @@ def train(config, device):
                 ckpt_reason = updated_stats["ckpt_reason"]
 
         # Only keep saved videos if the ckpt should be saved (but not because of validation score)
-        should_save_video = (should_save_ckpt and (ckpt_reason != "valid")) or config.experiment.keep_all_videos
-        if video_paths is not None and not should_save_video:
-            for env_name in video_paths:
-                os.remove(video_paths[env_name])
+        # should_save_video = (should_save_ckpt and (ckpt_reason != "valid")) or config.experiment.keep_all_videos
+        # if video_paths is not None and not should_save_video:
+        #     for env_name in video_paths:
+        #         os.remove(video_paths[env_name])
 
         # Save model checkpoints based on conditions (success rate, validation loss, etc)
+
+        print("should save checkpoint: ", should_save_ckpt)
         if should_save_ckpt:
             TrainUtils.save_model(
                 model=model,
                 config=config,
-                env_meta=env_meta,
                 shape_meta=shape_meta,
                 ckpt_path=os.path.join(ckpt_dir, epoch_ckpt_name + ".pth"),
                 obs_normalization_stats=obs_normalization_stats,
