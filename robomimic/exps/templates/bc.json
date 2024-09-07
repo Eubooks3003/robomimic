@@ -29,8 +29,8 @@
         "rollout": {
             "enabled": true,
             "n": 50,
-            "horizon": 400,
-            "rate": 50,
+            "horizon": 500,
+            "rate": 1,
             "warmstart": 0,
             "terminate_on_success": true
         }
@@ -55,9 +55,9 @@
             "dones"
         ],
         "goal_mode": null,
-        "cuda": true,
+        "cuda": false,
         "batch_size": 100,
-        "num_epochs": 2000,
+        "num_epochs": 6000,
         "seed": 1
     },
     "algo": {

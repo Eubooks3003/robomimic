@@ -174,11 +174,27 @@ def dataset_factory(config, obs_keys, filter_by_attribute=None, dataset_path=Non
 
     return dataset
 
+def concatenate_state_dict(state_dict):
+    # Initialize an empty list to hold all the arrays
+    state_list = []
+    
+    # Iterate over all key-value pairs in the dictionary
+    for key, value in state_dict.items():
+        # Ensure the value is a numpy array and then flatten it before adding to the list
+        if isinstance(value, np.ndarray):
+            state_list.append(value.flatten())
+    
+    # Concatenate all arrays in the list into a single numpy array
+    state_array = np.concatenate(state_list)
+    
+    return state_array
 
 def run_rollout(
         policy, 
         env, 
         horizon,
+        epoch,
+        episode,
         use_goals=False,
         render=False,
         video_writer=None,
@@ -212,9 +228,12 @@ def run_rollout(
     assert isinstance(policy, RolloutPolicy)
     assert isinstance(env, EnvBase) or isinstance(env, EnvWrapper)
 
+    print("Env Type: ", env.type)
+
     policy.start_episode()
 
     ob_dict = env.reset()
+    print("Initial Ob Dict: ", ob_dict)
     goal_dict = None
     if use_goals:
         # retrieve goal from the environment
@@ -226,6 +245,10 @@ def run_rollout(
     total_reward = 0.
     success = { k: False for k in env.is_success() } # success metrics
 
+    rollout = []
+    actions = []
+
+    num_steps = 0
     try:
         for step_i in range(horizon):
 
@@ -234,6 +257,10 @@ def run_rollout(
 
             # play action
             ob_dict, r, done, _ = env.step(ac)
+
+            # print("OB_dict: ", ob_dict)
+
+            state = concatenate_state_dict(ob_dict)
 
             # render to screen
             if render:
@@ -257,9 +284,26 @@ def run_rollout(
             # break if done
             if done or (terminate_on_success and success["task"]):
                 break
+            
+            rollout.append(state)
+            actions.append(ac)
+
+            num_steps += 1
 
     except env.rollout_exceptions as e:
         print("WARNING: got rollout exception {}".format(e))
+
+
+    # with h5py.File(f'bc_trajectories_manipulator_transport.hdf5', 'a') as f:
+    #     demo_group = f.create_group(f"data/demo_{epoch}_{episode}")
+    #     actions_ds = demo_group.create_dataset("actions", (num_steps, 14), dtype='f8')
+    #     states_ds = demo_group.create_dataset("states", (num_steps, 131), dtype='f8')
+        
+
+    #     actions_ds[:] = np.array(actions)
+    #     states_ds[:] = np.array(rollout)
+
+    #     demo_group.attrs['label'] = success["task"]
 
     results["Return"] = total_reward
     results["Horizon"] = step_i + 1
@@ -334,26 +378,26 @@ def rollout_with_stats(
     write_video = (video_path is not None) or (video_dir is not None)
     video_paths = OrderedDict()
     video_writers = OrderedDict()
-    if video_path is not None:
-        # a single video is written for all envs
-        video_paths = { k : video_path for k in envs }
-        video_writer = imageio.get_writer(video_path, fps=20)
-        video_writers = { k : video_writer for k in envs }
-    if video_dir is not None:
-        # video is written per env
-        video_str = "_epoch_{}.mp4".format(epoch) if epoch is not None else ".mp4" 
-        video_paths = { k : os.path.join(video_dir, "{}{}".format(k, video_str)) for k in envs }
-        video_writers = { k : imageio.get_writer(video_paths[k], fps=20) for k in envs }
+    # if video_path is not None:
+    #     # a single video is written for all envs
+    #     video_paths = { k : video_path for k in envs }
+    #     video_writer = imageio.get_writer(video_path, fps=20)
+    #     video_writers = { k : video_writer for k in envs }
+    # if video_dir is not None:
+    #     # video is written per env
+    #     video_str = "_epoch_{}.mp4".format(epoch) if epoch is not None else ".mp4" 
+    #     video_paths = { k : os.path.join(video_dir, "{}{}".format(k, video_str)) for k in envs }
+    #     video_writers = { k : imageio.get_writer(video_paths[k], fps=20) for k in envs }
 
     for env_name, env in envs.items():
-        env_video_writer = None
-        if write_video:
-            print("video writes to " + video_paths[env_name])
-            env_video_writer = video_writers[env_name]
+        # env_video_writer = None
+        # if write_video:
+        #     print("video writes to " + video_paths[env_name])
+        #     env_video_writer = video_writers[env_name]
 
-        print("rollout: env={}, horizon={}, use_goals={}, num_episodes={}".format(
-            env.name, horizon, use_goals, num_episodes,
-        ))
+        # print("rollout: env={}, horizon={}, use_goals={}, num_episodes={}".format(
+        #     env.name, horizon, use_goals, num_episodes,
+        # ))
         rollout_logs = []
         iterator = range(num_episodes)
         if not verbose:
@@ -361,11 +405,20 @@ def rollout_with_stats(
 
         num_success = 0
         for ep_i in iterator:
+
+            env_video_writer = None
+            if write_video:
+                video_str = "_epoch_{}_episode_{}.mp4".format(epoch, ep_i) if epoch is not None else "_episode_{}.mp4".format(ep_i)
+                video_path = os.path.join(video_dir, "{}{}".format(env_name, video_str))
+                print("video writes to " + video_path)
+                env_video_writer = imageio.get_writer(video_path, fps=20)
             rollout_timestamp = time.time()
             rollout_info = run_rollout(
                 policy=policy,
                 env=env,
                 horizon=horizon,
+                epoch = epoch,
+                episode = ep_i,
                 render=render,
                 use_goals=use_goals,
                 video_writer=env_video_writer,
@@ -392,9 +445,9 @@ def rollout_with_stats(
         rollout_logs_mean["Time_Episode"] = np.sum(rollout_logs["time"]) / 60. # total time taken for rollouts in minutes
         all_rollout_logs[env_name] = rollout_logs_mean
 
-    if video_path is not None:
-        # close video writer that was used for all envs
-        video_writer.close()
+    # if video_path is not None:
+    #     # close video writer that was used for all envs
+    #     video_writer.close()
 
     return all_rollout_logs, video_paths
 
