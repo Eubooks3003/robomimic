@@ -189,7 +189,7 @@ def run_trained_agent(args):
     ckpt_path = args.agent
 
     # device
-    device = TorchUtils.get_torch_device(try_to_use_cuda=True)
+    device = TorchUtils.get_torch_device(try_to_use_cuda=False)
 
     # restore policy
     policy, ckpt_dict = FileUtils.policy_from_checkpoint(ckpt_path=ckpt_path, device=device, verbose=True)
