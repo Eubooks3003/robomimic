@@ -77,6 +77,9 @@ class BaseConfig(Config):
         self.classifier.num_past = 0
         self.classifier.num_future = 0
         self.classifier.state_dim = 0
+        self.classifier.threshold = 0
+        self.classifier.from_checkpoint = True
+        self.classifier.env_name = ""
 
     def experiment_config(self):
         """

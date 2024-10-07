@@ -8,11 +8,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 class TrajectoryClassifier(nn.Module):
-    def __init__(self, state_dim, action_dim, num_past, num_future):
+    def __init__(self, state_dim, action_dim, num_past, num_future, threshold):
         super(TrajectoryClassifier, self).__init__()
         
         self.num_past = num_past
         self.num_future = num_future
+        self.threshold = threshold
         # Calculate the input dimension for the MLP (flatten state-action pairs across time horizon
         input_dim = (num_past + 1) * state_dim + (num_past + num_future + 1) * state_dim
 

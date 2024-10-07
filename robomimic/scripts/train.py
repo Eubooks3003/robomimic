@@ -261,10 +261,12 @@ def train(config, device):
 
             # wrap model as a RolloutPolicy to prepare for rollouts
             rollout_model = RolloutPolicy(model, obs_normalization_stats=obs_normalization_stats)
+            classifier = model.classifier
 
             num_episodes = config.experiment.rollout.n
             all_rollout_logs, video_paths = TrainUtils.rollout_with_stats(
                 policy=rollout_model,
+                classifier = classifier,
                 envs=envs,
                 horizon=config.experiment.rollout.horizon,
                 use_goals=config.use_goals,

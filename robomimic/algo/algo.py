@@ -18,6 +18,8 @@ import robomimic.utils.torch_utils as TorchUtils
 import robomimic.utils.obs_utils as ObsUtils
 
 from robomimic.classifier.classifier import TrajectoryClassifier
+import os
+import torch
 
 # mapping from algo name to factory functions that map algo configs to algo class names
 REGISTERED_ALGO_FACTORY_FUNCS = OrderedDict()
@@ -127,16 +129,44 @@ class Algo(object):
         self._create_networks()
         self._create_optimizers()
 
+        # Classifier Stuff
         self.past_actions = []
         self.past_observations = []
 
         self.classifier = TrajectoryClassifier(state_dim=global_config.classifier.state_dim, 
         action_dim=ac_dim,
         num_past = global_config.classifier.num_past, 
-        num_future = global_config.classifier.num_future)
+        num_future = global_config.classifier.num_future,
+        threshold = global_config.classifier.threshold)
+
+        checkpoints_dir = "/home/zhangel9/Working/Trajectories/checkpoints/"
+        checkpoint_folder = f"checkpoints_classifier_past_{global_config.classifier.num_past}_future_{global_config.classifier.num_future}_{global_config.classifier.env_name}_threshold_{global_config.classifier.threshold}"
+
+        checkpoint_path =  os.path.join(checkpoints_dir, checkpoint_folder)
+        latest_checkpoint = self.find_latest_checkpoint(checkpoint_path)
+
+        if (global_config.train.cuda):
+            device = "cuda"
+        else:
+            device = "cpu"
+
+        if (global_config.classifier.from_checkpoint):
+            self.classifier.load_state_dict(torch.load(latest_checkpoint, map_location=device))
+            self.classifier.to(device)
+            print(f"Model loaded from {latest_checkpoint}")
+
 
         assert isinstance(self.nets, nn.ModuleDict)
 
+    def find_latest_checkpoint(self,checkpoint_dir):
+
+        checkpoint_files = [f for f in os.listdir(checkpoint_dir) if f.endswith('.pth')]
+        if not checkpoint_files:
+            return None
+        # Sort by epoch number extracted from filename
+        checkpoint_files.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
+        latest_checkpoint = os.path.join(checkpoint_dir, checkpoint_files[-1])
+        return latest_checkpoint
     def _create_shapes(self, obs_keys, obs_key_shapes):
         """
         Create obs_shapes, goal_shapes, and subgoal_shapes dictionaries, to make it
