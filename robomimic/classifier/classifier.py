@@ -14,6 +14,7 @@ class TrajectoryClassifier(nn.Module):
         self.num_past = num_past
         self.num_future = num_future
         self.threshold = threshold
+        self.checkpoint = False
         # Calculate the input dimension for the MLP (flatten state-action pairs across time horizon
         input_dim = (num_past + 1) * state_dim + (num_past + num_future + 1) * state_dim
 
@@ -51,6 +52,9 @@ class TrajectoryClassifier(nn.Module):
         return self.num_past
     def get_num_future(self):
         return self.num_future
+    
+    def set_checkpoint(self):
+        self.checkpoint = True
 
 class MultiTrajectoryDataset(Dataset):
     def __init__(self, all_states, all_actions, all_results, trajectory_lengths, num_past=5, num_future=5, mode='train'):

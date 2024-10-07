@@ -235,12 +235,10 @@ def run_rollout(
     assert isinstance(policy, RolloutPolicy)
     assert isinstance(env, EnvBase) or isinstance(env, EnvWrapper)
 
-    print("Env Type: ", env.type)
 
     policy.start_episode()
 
     ob_dict = env.reset()
-    print("Initial Ob Dict: ", ob_dict)
     goal_dict = None
     if use_goals:
         # retrieve goal from the environment
@@ -327,8 +325,6 @@ def run_rollout(
         if k != "task":
             results["{}_Success_Rate".format(k)] = float(success[k])
 
-    print("Rollout: ", len(rollout[0]))
-    print("Actions: ", len(actions[0]))
     return results, rollout, actions, success["task"]
 
 def rollout_with_stats(
@@ -455,7 +451,6 @@ def rollout_with_stats(
             all_results.append(result)
             trajectory_lengths.append(len(states))
 
-
             rollout_info["time"] = time.time() - rollout_timestamp
             rollout_logs.append(rollout_info)
             num_success += rollout_info["Success_Rate"]
@@ -470,56 +465,12 @@ def rollout_with_stats(
         dataset = MultiTrajectoryDataset(all_states, all_actions, all_results, trajectory_lengths, classifier.num_past, classifier.num_future, 'train')
 
         data_loader = DataLoader(dataset, batch_size=8, shuffle=True)
-
-        criterion = nn.BCELoss() 
-        optimizer = optim.Adam(classifier.parameters(), lr=0.001)
-
         num_epochs = 3
 
-        for epoch in range(num_epochs):
-            classifier.train()
-            train_loss = 0.0
-            train_correct_predictions = 0
-            train_total_predictions = 0
-            train_loader_tqdm = tqdm(data_loader, desc=f"Epoch {epoch+1}/{num_epochs}", leave=False)
-            
-            for state_action_seq, labels in train_loader_tqdm:
-
-                # Forward pass
-                outputs = classifier(state_action_seq)
-                if outputs.dim() == 1 and outputs.size(0) == 1:
-                    # Don't squeeze the output if it's already a scalar
-                    outputs_squeezed = outputs
-                else:
-                    outputs_squeezed = outputs.squeeze()
-
-                if outputs_squeezed.dim() == 0:  # If output is scalar
-                    outputs_squeezed = outputs_squeezed.unsqueeze(0)  # Make it a 1D tensor
-                if labels.dim() == 0:  # If label is scalar
-                    labels = labels.unsqueeze(0)  # Make it a 1D tensor
-
-                loss = criterion(outputs_squeezed, labels)
-                
-                # Backward and optimize
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                
-                # Update training loss
-                train_loss += loss.item()
-
-                predictions = (outputs.squeeze() > classifier.threshold).float()
-
-                # Calculate the number of correct predictions
-                train_correct_predictions += (predictions == labels).sum().item()
-                train_total_predictions += labels.size(0)
-                
-                # Update TQDM bar
-                train_loader_tqdm.set_postfix({"Train Loss": loss.item()})
-
-            avg_train_loss = train_loss / len(data_loader)
-            print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_train_loss:.4f}, Accuracy {train_correct_predictions/train_total_predictions}')
-        
+        if (not classifier.checkpoint):
+            train_classifier(classifier, num_epochs, data_loader)
+        else:
+            print("Using checkpointed Classifier Not Training")
 
         if video_dir is not None:
             # close this env's video writer (next env has it's own)
@@ -536,6 +487,56 @@ def rollout_with_stats(
     #     video_writer.close()
 
     return all_rollout_logs, video_paths
+
+def train_classifier(classifier, num_epochs, data_loader):
+
+    criterion = nn.BCELoss() 
+    optimizer = optim.Adam(classifier.parameters(), lr=0.001)
+
+    for epoch in range(num_epochs):
+        classifier.train()
+        train_loss = 0.0
+        train_correct_predictions = 0
+        train_total_predictions = 0
+        train_loader_tqdm = tqdm(data_loader, desc=f"Epoch {epoch+1}/{num_epochs}", leave=False)
+        
+        for state_action_seq, labels in train_loader_tqdm:
+
+            # Forward pass
+            outputs = classifier(state_action_seq)
+            if outputs.dim() == 1 and outputs.size(0) == 1:
+                # Don't squeeze the output if it's already a scalar
+                outputs_squeezed = outputs
+            else:
+                outputs_squeezed = outputs.squeeze()
+
+            if outputs_squeezed.dim() == 0:  # If output is scalar
+                outputs_squeezed = outputs_squeezed.unsqueeze(0)  # Make it a 1D tensor
+            if labels.dim() == 0:  # If label is scalar
+                labels = labels.unsqueeze(0)  # Make it a 1D tensor
+
+            loss = criterion(outputs_squeezed, labels)
+            
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            
+            # Update training loss
+            train_loss += loss.item()
+
+            predictions = (outputs.squeeze() > classifier.threshold).float()
+
+            # Calculate the number of correct predictions
+            train_correct_predictions += (predictions == labels).sum().item()
+            train_total_predictions += labels.size(0)
+            
+            # Update TQDM bar
+            train_loader_tqdm.set_postfix({"Train Loss": loss.item()})
+
+        avg_train_loss = train_loss / len(data_loader)
+        print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_train_loss:.4f}, Accuracy {train_correct_predictions/train_total_predictions}')
+        
 
 
 def should_save_from_rollout_logs(

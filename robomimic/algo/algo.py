@@ -153,6 +153,7 @@ class Algo(object):
         if (global_config.classifier.from_checkpoint):
             self.classifier.load_state_dict(torch.load(latest_checkpoint, map_location=device))
             self.classifier.to(device)
+            self.classifier.set_checkpoint()
             print(f"Model loaded from {latest_checkpoint}")
 
 
