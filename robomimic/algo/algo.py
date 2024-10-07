@@ -17,6 +17,7 @@ import robomimic.utils.tensor_utils as TensorUtils
 import robomimic.utils.torch_utils as TorchUtils
 import robomimic.utils.obs_utils as ObsUtils
 
+from robomimic.classifier.classifier import TrajectoryClassifier
 
 # mapping from algo name to factory functions that map algo configs to algo class names
 REGISTERED_ALGO_FACTORY_FUNCS = OrderedDict()
@@ -125,6 +126,15 @@ class Algo(object):
         self._create_shapes(obs_config.modalities, obs_key_shapes)
         self._create_networks()
         self._create_optimizers()
+
+        self.past_actions = []
+        self.past_observations = []
+
+        self.classifier = TrajectoryClassifier(state_dim=global_config.classifier.state_dim, 
+        action_dim=ac_dim,
+        num_past = global_config.classifier.num_past, 
+        num_future = global_config.classifier.num_future)
+
         assert isinstance(self.nets, nn.ModuleDict)
 
     def _create_shapes(self, obs_keys, obs_key_shapes):

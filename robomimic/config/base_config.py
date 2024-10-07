@@ -56,6 +56,7 @@ class BaseConfig(Config):
         # store algo name class property in the config (must be implemented by subclasses)
         self.algo_name = type(self).ALGO_NAME
 
+        self.classifier_config()
         self.experiment_config()
         self.train_config()
         self.algo_config()
@@ -71,6 +72,11 @@ class BaseConfig(Config):
     def ALGO_NAME(cls):
         # must be specified by subclasses
         raise NotImplementedError
+
+    def classifier_config(self):
+        self.classifier.num_past = 0
+        self.classifier.num_future = 0
+        self.classifier.state_dim = 0
 
     def experiment_config(self):
         """

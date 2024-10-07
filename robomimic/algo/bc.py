@@ -19,6 +19,10 @@ import robomimic.utils.obs_utils as ObsUtils
 
 from robomimic.algo import register_algo_factory_func, PolicyAlgo
 
+from robomimic.classifier.classifier import MultiTrajectoryDataset
+
+import numpy as np
+
 
 @register_algo_factory_func("bc")
 def algo_config_to_class(algo_config):
@@ -92,6 +96,8 @@ class BC(PolicyAlgo):
             encoder_kwargs=ObsUtils.obs_encoder_kwargs_from_config(self.obs_config.encoder),
         )
         self.nets = self.nets.float().to(self.device)
+    
+
 
     def process_batch_for_training(self, batch):
         """
@@ -110,10 +116,25 @@ class BC(PolicyAlgo):
         input_batch["obs"] = {k: batch["obs"][k][:, 0, :] for k in batch["obs"]}
         input_batch["goal_obs"] = batch.get("goal_obs", None) # goals may not be present
         input_batch["actions"] = batch["actions"][:, 0, :]
+
         # we move to device first before float conversion because image observation modalities will be uint8 -
         # this minimizes the amount of data transferred to GPU
         return TensorUtils.to_float(TensorUtils.to_device(input_batch, self.device))
 
+    def concatenate_state_dict(self, state_dict):
+        # Initialize an empty list to hold all the arrays
+        state_list = []
+        
+        for key, value in state_dict.items():
+            
+            # Flatten along the last dimension
+            flattened_value = value.view(value.size(0), -1)  # Flatten to shape [100, n]
+            state_list.append(flattened_value)
+
+        # Concatenate all flattened tensors along the second dimension (dim=1)
+        concatenated_tensor = torch.cat(state_list, dim=1)
+
+        return concatenated_tensor
 
     def train_on_batch(self, batch, epoch, validate=False):
         """
@@ -133,9 +154,13 @@ class BC(PolicyAlgo):
                 that might be relevant for logging
         """
         with TorchUtils.maybe_no_grad(no_grad=validate):
+            concatenated_state_tensor = self.concatenate_state_dict(batch['obs'])
+
+            # print("Batch Goal Obs: ", batch['goal_obs'].keys())
+            # self.concatenate_state_dict(batch['goal_obs'])
             info = super(BC, self).train_on_batch(batch, epoch, validate=validate)
             predictions = self._forward_training(batch)
-            losses = self._compute_losses(predictions, batch)
+            losses = self._compute_losses(predictions, batch, concatenated_state_tensor)
 
             info["predictions"] = TensorUtils.detach(predictions)
             info["losses"] = TensorUtils.detach(losses)
@@ -163,7 +188,7 @@ class BC(PolicyAlgo):
         predictions["actions"] = actions
         return predictions
 
-    def _compute_losses(self, predictions, batch):
+    def _compute_losses(self, predictions, batch, current_state):
         """
         Internal helper function for BC algo class. Compute losses based on
         network outputs in @predictions dict, using reference labels in @batch.
@@ -177,20 +202,74 @@ class BC(PolicyAlgo):
             losses (dict): dictionary of losses computed over the batch
         """
         losses = OrderedDict()
+
+        # Actions Size: [100, 1, 7]
         a_target = batch["actions"]
         actions = predictions["actions"]
+
         losses["l2_loss"] = nn.MSELoss()(actions, a_target)
         losses["l1_loss"] = nn.SmoothL1Loss()(actions, a_target)
         # cosine direction loss on eef delta position
         losses["cos_loss"] = LossUtils.cosine_loss(actions[..., :3], a_target[..., :3])
 
-        action_losses = [
-            self.algo_config.loss.l2_weight * losses["l2_loss"],
-            self.algo_config.loss.l1_weight * losses["l1_loss"],
-            self.algo_config.loss.cos_weight * losses["cos_loss"],
-        ]
+        # Classifier Loss
+        
+        # Check if past_actions and past_observations are longer than num_past
+        num_past = self.classifier.get_num_past()
+
+        current_action = actions.squeeze(1)
+        current_state = current_state.squeeze(1)
+        if len(self.past_actions) >= num_past:
+            actions_window = self.past_actions[-num_past:].copy()
+            states_window = self.past_observations[-num_past:].copy()
+
+            actions_window.append(current_action.clone().detach())
+            states_window.append(current_state.clone().detach())
+            
+            padded_actions = []
+            for action in actions_window:
+                # Create a padded action tensor to match the state dimension
+                action_pad = torch.zeros_like(current_state)  # Match observation dimension
+
+                action_pad[:, :action.shape[1]] = action
+                padded_actions.append(action_pad)
+            
+            # Convert past states and padded actions to tensors
+
+            states_tensor = torch.stack([state.clone().detach() for state in states_window], dim=0)  # Shape: [num_past + 1, batch_size, state_dim]
+            actions_tensor = torch.stack(padded_actions, dim=0)  # Shape: [num_past, batch_size, state_dim]
+            
+            # Concatenate states and actions along the time dimension
+            combined_tensor = torch.cat((states_tensor, actions_tensor), dim=0)  # Shape: [2 * (num_past + 1), batch_size, state_dim]
+            
+            # Reshape to desired output: [batch_size, state_dim, num_past * 2 + 2]
+            final_tensor = combined_tensor.permute(1, 2, 0)  # Shape: [batch_size, state_dim, num_past * 2 + 2]
+
+            output = self.classifier(final_tensor)
+
+
+            losses["classifier_loss"] = - torch.mean(output )
+        
+
+
+        if len(self.past_actions) >= num_past:
+            action_losses = [
+                self.algo_config.loss.l2_weight * losses["l2_loss"],
+                self.algo_config.loss.l1_weight * losses["l1_loss"],
+                self.algo_config.loss.cos_weight * losses["cos_loss"],
+                self.algo_config.loss.classifier_weight * losses["classifier_loss"]
+            ]
+        else:
+            action_losses = [
+                self.algo_config.loss.l2_weight * losses["l2_loss"],
+                self.algo_config.loss.l1_weight * losses["l1_loss"],
+                self.algo_config.loss.cos_weight * losses["cos_loss"]
+            ]
         action_loss = sum(action_losses)
         losses["action_loss"] = action_loss
+
+        self.past_actions.append(current_action.clone().detach())
+        self.past_observations.append(current_state.clone().detach())
         return losses
 
     def _train_step(self, losses):
@@ -233,6 +312,8 @@ class BC(PolicyAlgo):
             log["Cosine_Loss"] = info["losses"]["cos_loss"].item()
         if "policy_grad_norms" in info:
             log["Policy_Grad_Norms"] = info["policy_grad_norms"]
+        if "classifier_loss" in info["losses"]:
+            log["Classifier_Loss"] = info["losses"]["classifier_loss"]
         return log
 
     def get_action(self, obs_dict, goal_dict=None):
@@ -503,6 +584,8 @@ class BC_RNN(BC):
         self._rnn_is_open_loop = self.algo_config.rnn.get("open_loop", False)
 
         self.nets = self.nets.float().to(self.device)
+
+
 
     def process_batch_for_training(self, batch):
         """

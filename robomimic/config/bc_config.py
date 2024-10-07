@@ -35,6 +35,7 @@ class BCConfig(BaseConfig):
         self.algo.loss.l2_weight = 1.0      # L2 loss weight
         self.algo.loss.l1_weight = 0.0      # L1 loss weight
         self.algo.loss.cos_weight = 0.0     # cosine loss weight
+        self.algo.loss.classifier_weight = 0.0
 
         # MLP network architecture (layers after observation encoder and RNN, if present)
         self.algo.actor_layer_dims = (1024, 1024)
