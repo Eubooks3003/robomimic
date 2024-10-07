@@ -1,5 +1,13 @@
 {
     "algo_name": "bc",
+    "classifier": {
+        "num_past": 1,
+        "num_future": 0,
+        "state_dim": 23,
+        "threshold": 0.5,
+        "from_checkpoint": true,
+        "env_name": "square"
+    },
     "experiment": {
         "name": "test",
         "validate": false,
@@ -23,14 +31,14 @@
         "env": null,
         "additional_envs": null,
         "render": false,
-        "render_video": true,
+        "render_video": false,
         "keep_all_videos": false,
         "video_skip": 5,
         "rollout": {
             "enabled": true,
-            "n": 50,
+            "n": 5,
             "horizon": 500,
-            "rate": 1,
+            "rate": 50,
             "warmstart": 0,
             "terminate_on_success": true
         }
@@ -78,7 +86,8 @@
         "loss": {
             "l2_weight": 1.0,
             "l1_weight": 0.0,
-            "cos_weight": 0.0
+            "cos_weight": 0.0,
+            "classifier_weight": 1.0
         },
         "actor_layer_dims": [
             1024,
