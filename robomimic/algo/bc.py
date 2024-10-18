@@ -219,18 +219,23 @@ class BC(PolicyAlgo):
 
         current_action = actions.squeeze(1)
         current_state = current_state.squeeze(1)
-        if len(self.past_actions) >= num_past:
-            actions_window = self.past_actions[-num_past:].copy()
-            states_window = self.past_observations[-num_past:].copy()
 
-            actions_window.append(current_action.clone().detach())
-            states_window.append(current_state.clone().detach())
             
+        if len(self.past_actions) >= num_past:
+            if num_past == 0:
+                actions_window = [current_action.clone().detach()]
+                states_window = [current_state.clone().detach()]
+            else:
+                actions_window = self.past_actions[-num_past:].copy()
+                states_window = self.past_observations[-num_past:].copy()
+
+                actions_window.append(current_action.clone().detach())
+                states_window.append(current_state.clone().detach())
+                
             padded_actions = []
             for action in actions_window:
                 # Create a padded action tensor to match the state dimension
                 action_pad = torch.zeros_like(current_state)  # Match observation dimension
-
                 action_pad[:, :action.shape[1]] = action
                 padded_actions.append(action_pad)
             
@@ -245,10 +250,14 @@ class BC(PolicyAlgo):
             # Reshape to desired output: [batch_size, state_dim, num_past * 2 + 2]
             final_tensor = combined_tensor.permute(1, 2, 0)  # Shape: [batch_size, state_dim, num_past * 2 + 2]
 
+
             output = self.classifier(final_tensor)
 
-
-            losses["classifier_loss"] = - torch.mean(output )
+            # print("Output: ", output)
+            # print("Output Size: ", output.shape)
+            # print("Average Output: ", torch.mean(output))
+            losses["classifier_loss"] = - torch.mean(output)
+            # print("Classifier loss: ", - torch.mean(output))
         
 
 

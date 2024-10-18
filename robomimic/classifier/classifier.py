@@ -7,6 +7,8 @@ import torch.nn.functional as F
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+import numpy as np
 class TrajectoryClassifier(nn.Module):
     def __init__(self, state_dim, action_dim, num_past, num_future, threshold):
         super(TrajectoryClassifier, self).__init__()
@@ -113,9 +115,12 @@ class MultiTrajectoryDataset(Dataset):
             padded_actions.append(action_pad)
         
         # Convert windows to tensors
-        states_tensor = torch.tensor(states_window, dtype=torch.float32)
+        states_array = np.array(states_window, dtype=np.float32)
+        # Convert to tensor
+        states_tensor = torch.tensor(states_array, dtype=torch.float32)
 
-        actions_tensor = torch.stack(padded_actions, dim=0)
+        padded_actions_np = [np.array(action, dtype=np.float32) for action in padded_actions]
+        actions_tensor = torch.tensor(np.stack(padded_actions_np, axis=0))
 
         states_tensor = states_tensor.transpose(0, 1)
         actions_tensor = actions_tensor.transpose(0, 1)
