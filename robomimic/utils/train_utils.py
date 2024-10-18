@@ -214,7 +214,8 @@ def run_rollout(
         video_skip=5,
         terminate_on_success=False,
         classifier=None,
-        video_path=None
+        video_path=None,
+        at_end = False
     ):
     """
     Runs a rollout in an environment with the current network parameters.
@@ -297,7 +298,7 @@ def run_rollout(
                 success[k] = success[k] or cur_success_metrics[k]
 
             # visualization
-            if video_writer is not None:
+            if video_writer is not None and at_end:
                 if video_count % video_skip == 0:
                     video_img = env.render(mode="rgb_array", height=512, width=512)
                     # video_writer.append_data(video_img)
@@ -323,7 +324,7 @@ def run_rollout(
     result = [success["task"]]
     single_trajectory_dataset = MultiTrajectoryDataset(rollout, actions, result, trajectory_lengths, classifier.num_past, classifier.num_future,'train')
 
-    true_labels, predicted_labels = evaluate_trajectory_performance(classifier, single_trajectory_dataset, 0, classifier.threshold, saved_frames, video_path, device='cpu')
+    true_labels, predicted_labels = evaluate_trajectory_performance(classifier, single_trajectory_dataset, 0, classifier.threshold, saved_frames, video_path, at_end, device='cpu')
     # with h5py.File(f'bc_trajectories_manipulator_transport.hdf5', 'a') as f:
     #     demo_group = f.create_group(f"data/demo_{epoch}_{episode}")
     #     actions_ds = demo_group.create_dataset("actions", (num_steps, 14), dtype='f8')
@@ -352,7 +353,7 @@ def run_rollout(
 
     return results, rollout, actions, success["task"]
 
-def evaluate_trajectory_performance(classifier, dataset, trajectory_idx, threshold, saved_frames, video_path, device='cpu'):
+def evaluate_trajectory_performance(classifier, dataset, trajectory_idx, threshold, saved_frames, video_path, at_end, device='cpu'):
     classifier.eval()
     classifier.to(device)
 
@@ -361,35 +362,37 @@ def evaluate_trajectory_performance(classifier, dataset, trajectory_idx, thresho
         idx for idx, (traj_idx, _) in enumerate(dataset.indices) if traj_idx == trajectory_idx
     ]
 
-    # Get video properties
-    frame_width = 512
-    frame_height = 512
-    fps = 20
-    total_frames = len(saved_frames)
+    if at_end:
+        # Get video properties
+        frame_width = 512
+        frame_height = 512
+        fps = 20
+        total_frames = len(saved_frames)
 
-    # Debug: print video properties
-    print(f"Video properties - Width: {frame_width}, Height: {frame_height}, FPS: {fps}, Total Frames: {total_frames}, Path: {video_path}")
+        # Debug: print video properties
+        print(f"Video properties - Width: {frame_width}, Height: {frame_height}, FPS: {fps}, Total Frames: {total_frames}, Path: {video_path}")
 
-    if frame_width == 0 or frame_height == 0 or fps == 0:
-        print("Invalid video properties.")
-        return 0.0  # Invalid video properties
+        if frame_width == 0 or frame_height == 0 or fps == 0:
+            print("Invalid video properties.")
+            return 0.0  # Invalid video properties
 
-    # Set up video writer with the 'mp4v' codec for MP4 compatibility
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Switch to 'mp4v' codec for MP4 files
+        # Set up video writer with the 'mp4v' codec for MP4 compatibility
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Switch to 'mp4v' codec for MP4 files
 
-    combined_video_writer = imageio.get_writer(video_path, fps=fps)
-
-    # Initialize variables for performance evaluation
-    total_correct_predictions = 0
-    total_predictions = 0
+        combined_video_writer = imageio.get_writer(video_path, fps=fps)
+        
+        # Set up plots
+        fig_scatter, ax_scatter = plt.subplots()  # Scatter plot figure
+        fig_logit, ax_logit = plt.subplots()      # Logit line graph figure
 
     # Lists to store plot data
     x_coords, y_coords, colors, logits, predicted_labels, true_labels, indices = [], [], [], [], [], [], []
     logit_values, time_points = [], []
 
-    # Set up plots
-    fig_scatter, ax_scatter = plt.subplots()  # Scatter plot figure
-    fig_logit, ax_logit = plt.subplots()      # Logit line graph figure
+    # Initialize variables for performance evaluation
+    total_correct_predictions = 0
+    total_predictions = 0
+
 
 
     def update_frame(i):
@@ -492,18 +495,41 @@ def evaluate_trajectory_performance(classifier, dataset, trajectory_idx, thresho
 
         return True, correct_predictions, num_predictions, true_labels, predicted_labels
     
-    frame_idx = 0
-    while frame_idx < len(saved_frames):
-        update, correct_predictions, num_predictions, true_labels, predicted_labels = update_frame(frame_idx)
-        total_correct_predictions += correct_predictions
-        total_predictions += num_predictions
-        if not update:
-            break
-        frame_idx += 1
-    
-    combined_video_writer.close()
-    plt.close(fig_scatter)
-    plt.close(fig_logit)
+    if at_end:
+        frame_idx = 0
+        while frame_idx < len(saved_frames):
+            update, correct_predictions, num_predictions, true_labels, predicted_labels = update_frame(frame_idx)
+            total_correct_predictions += correct_predictions
+            total_predictions += num_predictions
+            if not update:
+                break
+            frame_idx += 1
+        
+        combined_video_writer.close()
+        plt.close(fig_scatter)
+        plt.close(fig_logit)
+    else:
+        for i in range(len(trajectory_indices)):
+            state_action_seq, true_label = dataset[trajectory_indices[i]]
+            state_action_seq = state_action_seq.to(device)
+
+
+            true_label = true_label.to(device)
+
+            # Predict the label using the model
+            output = classifier(state_action_seq.unsqueeze(0))  # Add batch dimension
+            logit = output.squeeze().item()
+            predicted_label = (output > threshold).float()
+
+            predicted_labels.append(predicted_label.item())
+            logits.append(logit)
+            true_labels.append(true_label.item())
+            indices.append(i)
+
+            total_correct_predictions += 1 if predicted_label.item() == true_label.item() else 0
+            total_predictions += 1
+        
+
 
     return true_labels, predicted_labels
 
@@ -616,6 +642,7 @@ def rollout_with_stats(
                 print("video writes to " + video_path)
                 env_video_writer = imageio.get_writer(video_path, fps=20)
             rollout_timestamp = time.time()
+            at_end = (ep_i == num_episodes - 1)
             rollout_info, states, actions, result = run_rollout(
                 policy=policy,
                 env=env,
@@ -628,7 +655,8 @@ def rollout_with_stats(
                 video_skip=video_skip,
                 terminate_on_success=terminate_on_success,
                 classifier=classifier,
-                video_path=video_path
+                video_path=video_path,
+                at_end = at_end
             )
 
             # Classifier Stuff
