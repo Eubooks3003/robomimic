@@ -1,21 +1,13 @@
 {
     "algo_name": "bc",
-    "classifier": {
-        "num_past": 0,
-        "num_future": 0,
-        "state_dim": 23,
-        "threshold": 0.5,
-        "from_checkpoint": true,
-        "env_name": "can"
-    },
     "experiment": {
-        "name": "test",
-        "validate": false,
+        "name": "subopt_bc_can_mh_okay_better_low_dim",
+        "validate": true,
         "logging": {
             "terminal_output_to_txt": true,
             "log_tb": true,
-            "log_wandb": true,
-            "wandb_proj_name": "classifier can"
+            "log_wandb": false,
+            "wandb_proj_name": "debug"
         },
         "save": {
             "enabled": true,
@@ -32,11 +24,11 @@
         "additional_envs": null,
         "render": false,
         "render_video": true,
-        "keep_all_videos": true,
+        "keep_all_videos": false,
         "video_skip": 5,
         "rollout": {
             "enabled": true,
-            "n": 5,
+            "n": 50,
             "horizon": 500,
             "rate": 50,
             "warmstart": 0,
@@ -44,15 +36,15 @@
         }
     },
     "train": {
-        "data": null,
-        "output_dir": "../bc_trained_models",
+        "data": "/home/zhangel9/.local/lib/python3.10/site-packages/robomimic-0.3.0-py3.10.egg/robomimic/../datasets/can/mh/low_dim_v141.hdf5",
+        "output_dir": "../bc_trained_models/subopt/bc/can/mh/okay_better/low_dim/trained_models",
         "num_data_workers": 0,
         "hdf5_cache_mode": "all",
         "hdf5_use_swmr": true,
         "hdf5_load_next_obs": false,
         "hdf5_normalize_obs": false,
-        "hdf5_filter_key": null,
-        "hdf5_validation_filter_key": null,
+        "hdf5_filter_key": "okay_better_train",
+        "hdf5_validation_filter_key": "okay_better_valid",
         "seq_length": 1,
         "pad_seq_length": true,
         "frame_stack": 1,
@@ -63,9 +55,9 @@
             "dones"
         ],
         "goal_mode": null,
-        "cuda": false,
+        "cuda": true,
         "batch_size": 100,
-        "num_epochs": 6000,
+        "num_epochs": 2000,
         "seed": 1
     },
     "algo": {
@@ -86,8 +78,7 @@
         "loss": {
             "l2_weight": 1.0,
             "l1_weight": 0.0,
-            "cos_weight": 0.0,
-            "classifier_weight": 0.1
+            "cos_weight": 0.0
         },
         "actor_layer_dims": [
             1024,
@@ -102,7 +93,7 @@
             "low_noise_eval": true
         },
         "gmm": {
-            "enabled": false,
+            "enabled": true,
             "num_modes": 5,
             "min_std": 0.0001,
             "std_activation": "softplus",
